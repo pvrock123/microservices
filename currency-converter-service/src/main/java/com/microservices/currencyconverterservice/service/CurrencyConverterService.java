@@ -1,23 +1,21 @@
 package com.microservices.currencyconverterservice.service;
 
+import com.microservices.currencyconverterservice.feignclient.CurrencyExchangeProxy;
 import com.microservices.currencyconverterservice.model.CurrencyConverter;
-import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 @Service
 public class CurrencyConverterService {
 
-    private final Environment environment;
+    private final CurrencyExchangeProxy currencyExchangeProxy;
 
-    public CurrencyConverterService(Environment environment) {
-        this.environment = environment;
+    public CurrencyConverterService(CurrencyExchangeProxy currencyExchangeProxy) {
+        this.currencyExchangeProxy = currencyExchangeProxy;
     }
 
     public CurrencyConverter retrieveCurrencyValue(String from, String to, Integer quantity) {
-        CurrencyConverter currencyConverter = new RestTemplate().getForEntity("http://localhost:8001/currency-exchange/from/" + from + "/to/" + to, CurrencyConverter.class).getBody();
+        CurrencyConverter currencyConverter = currencyExchangeProxy.retrieveCurrencyValue(from, to);
         currencyConverter.setTotalCurrencyValue(currencyConverter.getConversion() * quantity);
-        currencyConverter.setEnvironment(environment.getProperty("local.server.port"));
         return currencyConverter;
     }
 }
