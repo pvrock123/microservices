@@ -1,21 +1,70 @@
 version: '3.7'
 services:
-  limits-service:
-    image: micro/limit-service:latest
+  currency-exchange-service:
+    image: micro/currency-exchange-service:latest
     mem_limit: 700m
     build:
-      context: ./limits-service/
+      context: ./currency-exchange-service/
       dockerfile: Dockerfile
     ports:
-      - 8080:8080
+      - 8000:8000
     depends_on:
-      - clould-config-server
+      - api-gateway
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8765/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411
+    networks:
+      - micro-network
 
-  clould-config-server:
-    image: micro/clould-config-server:latest
+  currency-converter-service:
+    image: micro/currency-converter-service:latest
     mem_limit: 700m
     build:
-      context: ./cloud-config-server/
+      context: ./currency-converter-service/
       dockerfile: Dockerfile
     ports:
-    - 8888:8888
+      - 8100:8100
+    depends_on:
+      - api-gateway
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8765/eureka
+      SPRING.ZIPKIN.BASEURL: http://zipkin-server:9411
+    networks:
+      - micro-network
+
+  api-gateway:
+    image: micro/api-gateway:latest
+    mem_limit: 700m
+    build:
+      context: ./api-gatway/
+      dockerfile: Dockerfile
+    ports:
+      - 8888:8888
+    depends_on:
+      - naming-server
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8765/eureka
+    networks:
+      - micro-network
+
+  naming-server:
+    image: micro/naming-server:latest
+    mem_limit: 700m
+    build:
+      context: ./naming-server/
+      dockerfile: Dockerfile
+    ports:
+      - 8765:8765
+    networks:
+      - micro-network
+
+  zipkin-server:
+    image: openzipkin/zipkin:2.23
+    mem_limit: 500m
+    ports:
+      - 9411:9411
+    networks:
+      - micro-network
+
+networks:
+  micro-network:
