@@ -1,0 +1,21 @@
+version: '3.7'
+services:
+  limits-service:
+    image: micro/limit-service:latest
+    mem_limit: 700m
+    build:
+      context: ./limits-service/
+      dockerfile: Dockerfile
+    ports:
+      - 8080:8080
+    depends_on:
+      - clould-config-server
+
+  clould-config-server:
+    image: micro/clould-config-server:latest
+    mem_limit: 700m
+    build:
+      context: ./cloud-config-server/
+      dockerfile: Dockerfile
+    ports:
+    - 8888:8888
